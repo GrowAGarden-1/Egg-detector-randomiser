@@ -300,7 +300,7 @@ stopBtn.BackgroundColor3 = Color3.fromRGB(160, 110, 60)
 
 stopBtn.TextColor3 = Color3.new(1, 1, 1)
 
-stopBtn.Text = "Auto Stop: ON"
+stopBtn.Text = "🍀Auto Stop: ON"
 
 stopBtn.TextScaled = true
 
@@ -398,7 +398,7 @@ autoBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
 
 autoBtn.TextColor3 = Color3.new(1, 1, 1)
 
-autoBtn.Text = "Auto Randomizer: OFF"
+autoBtn.Text = "🔄Auto Randomizer: OFF"
 
 autoBtn.TextScaled = true
 
