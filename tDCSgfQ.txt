@@ -350,39 +350,51 @@ end)
 
 
 
--- Reroll Button
+-- Reroll Button with 10s Cooldown
+local rerollCooldown = 10
+local rerollTimer = 0
+local isRerollCoolingDown = false
 
 local rerollBtn = Instance.new("TextButton", bgFrame)
-
 rerollBtn.Size = UDim2.new(0, 200, 0, 35)
-
 rerollBtn.Position = UDim2.new(0, 10, 0, 55)
-
 rerollBtn.BackgroundColor3 = Color3.fromRGB(120, 120, 120)
-
 rerollBtn.TextColor3 = Color3.new(1, 1, 1)
-
 rerollBtn.Text = "🎲Randomize Pets"
-
 rerollBtn.TextScaled = true
 
 rerollBtn.MouseButton1Click:Connect(function()
+    if isRerollCoolingDown then return end
+    isRerollCoolingDown = true
+    rerollBtn.Text = "Cooldown: " .. rerollCooldown .. "s"
+    rerollBtn.AutoButtonColor = false
 
     for objectId, data in pairs(displayedEggs) do
-
         local pet = getNonRepeatingRandomPet(data.eggName, data.lastPet)
-
         if pet and data.label then
-
             data.label.Text = data.eggName .. " | " .. pet
-
             data.lastPet = pet
-
         end
-
     end
 
+    rerollTimer = rerollCooldown
 end)
+
+-- Countdown Handler
+runService.Heartbeat:Connect(function(dt)
+    if isRerollCoolingDown then
+        rerollTimer -= dt
+        if rerollTimer <= 0 then
+            rerollTimer = 0
+            isRerollCoolingDown = false
+            rerollBtn.Text = "🎲Randomize Pets"
+            rerollBtn.AutoButtonColor = true
+        else
+            rerollBtn.Text = "Cooldown: " .. math.ceil(rerollTimer) .. "s"
+        end
+    end
+end)
+
 
 
 
@@ -474,4 +486,81 @@ runService.Heartbeat:Connect(function(dt)
 
     end
 
+end)
+
+
+-- Draggable GUI Setup
+bgFrame.Active = true
+bgFrame.Draggable = true
+
+-- Top bar
+local topBar = Instance.new("Frame", bgFrame)
+topBar.Size = UDim2.new(1, 0, 0, 30)
+topBar.Position = UDim2.new(0, 0, 0, 0)
+topBar.BackgroundColor3 = Color3.fromRGB(80, 150, 40)
+topBar.BorderSizePixel = 0
+
+-- Minimize Button
+local minimizeBtn = Instance.new("TextButton", topBar)
+minimizeBtn.Size = UDim2.new(0, 30, 0, 30)
+minimizeBtn.Position = UDim2.new(1, -65, 0, 0)
+minimizeBtn.BackgroundColor3 = Color3.fromRGB(255, 255, 100)
+minimizeBtn.Text = "-"
+minimizeBtn.TextScaled = true
+minimizeBtn.TextColor3 = Color3.new(0, 0, 0)
+
+-- Exit Button
+local exitBtn = Instance.new("TextButton", topBar)
+exitBtn.Size = UDim2.new(0, 30, 0, 30)
+exitBtn.Position = UDim2.new(1, -30, 0, 0)
+exitBtn.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+exitBtn.Text = "X"
+exitBtn.TextScaled = true
+exitBtn.TextColor3 = Color3.new(1, 1, 1)
+
+-- GUI body container (for hiding/showing)
+local guiBody = Instance.new("Frame", bgFrame)
+guiBody.Name = "Body"
+guiBody.Size = UDim2.new(1, 0, 1, -30)
+guiBody.Position = UDim2.new(0, 0, 0, 30)
+guiBody.BackgroundTransparency = 1
+
+-- Move your existing controls into the body
+stopBtn.Parent = guiBody
+info.Parent = guiBody
+rerollBtn.Parent = guiBody
+autoBtn.Parent = guiBody
+timerLabel.Parent = guiBody
+
+-- Minimized logo button
+local logoBtn = Instance.new("TextButton")
+logoBtn.Size = UDim2.new(0, 100, 0, 30)
+logoBtn.Position = UDim2.new(0, 10, 1, -40)
+logoBtn.BackgroundColor3 = Color3.fromRGB(106, 190, 48)
+logoBtn.Text = "🔼 Show Randomizer"
+logoBtn.TextScaled = true
+logoBtn.Visible = false
+logoBtn.TextColor3 = Color3.new(1, 1, 1)
+logoBtn.Parent = gui
+
+-- Minimize toggle
+local minimized = false
+minimizeBtn.MouseButton1Click:Connect(function()
+    minimized = true
+    guiBody.Visible = false
+    bgFrame.Visible = false
+    logoBtn.Visible = true
+end)
+
+-- Restore GUI from logo
+logoBtn.MouseButton1Click:Connect(function()
+    minimized = false
+    guiBody.Visible = true
+    bgFrame.Visible = true
+    logoBtn.Visible = false
+end)
+
+-- Exit GUI
+exitBtn.MouseButton1Click:Connect(function()
+    gui:Destroy()
 end)
