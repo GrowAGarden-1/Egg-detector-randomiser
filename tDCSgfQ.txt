@@ -1,15 +1,18 @@
+-- SERVICES
 local players = game:GetService("Players")
-
 local collectionService = game:GetService("CollectionService")
-
 local runService = game:GetService("RunService")
 
 local localPlayer = players.LocalPlayer or players:GetPlayers()[1]
 
+-- SETTINGS
+local espEnabled = true
+local autoStopOn = true
+local autoRandomizerOn = false
+local AUTO_INTERVAL = 10
+local lastAutoUpdate = 0
 
-
--- Pet chances table (unchanged)
-
+-- EGG PET CHANCES
 local eggChances = {
     ["Common Egg"] = {["Dog"] = 33, ["Bunny"] = 33, ["Golden Lab"] = 33},
     ["Uncommon Egg"] = {["Black Bunny"] = 25, ["Chicken"] = 25, ["Cat"] = 25, ["Deer"] = 25},
@@ -25,477 +28,254 @@ local eggChances = {
     ["Paradise Egg"] = {["Ostrich"] = 43, ["Peacock"] = 33, ["Capybara"] = 24, ["Scarlet Macaw"] = 3, ["Mimic Octopus"] = 1},
     ["Premium Night Egg"] = {["Hedgehog"] = 50, ["Mole"] = 26, ["Frog"] = 14, ["Echo Frog"] = 10},
     ["Dinosaur Egg"] = {["Raptor"] = 33, ["Triceratops"] = 33, ["T-Rex"] = 1, ["Stegosaurus"] = 33, ["Pterodactyl"] = 33, ["Brontosaurus"] = 33},
-    
-    -- ✅ New Egg Entry
-    ["Zen Egg"] = {
-        ["Shiba Inu"] = 20,
-        ["Nihonzaru"] = 20,
-        ["Tanuki"] = 20,
-        ["Tanchozuru"] = 15,
-        ["Kappa"] = 1,
-        ["Kitsune"] = 0
-    }
+    ["Zen Egg"] = {["Shiba Inu"] = 20, ["Nihonzaru"] = 20, ["Tanuki"] = 20, ["Tanchozuru"] = 15, ["Kappa"] = 15, ["Kitsune"] = 10}
 }
-
-
 
 local realESP = {
-
     ["Common Egg"] = true, ["Uncommon Egg"] = true, ["Rare Egg"] = true,
-
     ["Common Summer Egg"] = true, ["Rare Summer Egg"] = true
-
 }
-
-
 
 local displayedEggs = {}
 
-local autoStopOn = true
-
-local autoRandomizerOn = false
-
-local AUTO_INTERVAL = 10
-
-local lastAutoUpdate = 0
-
-
-
--- Weighted random selection
-
+-- RANDOM PET FUNCTION
 local function weightedRandom(options)
-
     local valid = {}
-
     for pet, chance in pairs(options) do
-
         if chance > 0 then
-
             table.insert(valid, {pet = pet, chance = chance})
-
         end
-
     end
-
     if #valid == 0 then return nil end
-
-    local total = 0
-
+    local total, roll = 0, math.random()
     for _, v in ipairs(valid) do total += v.chance end
-
-    local roll = math.random() * total
-
+    roll *= total
     local cumulative = 0
-
     for _, v in ipairs(valid) do
-
         cumulative += v.chance
-
         if roll <= cumulative then return v.pet end
-
     end
-
     return valid[1].pet
-
 end
-
-
 
 local function getNonRepeatingRandomPet(eggName, lastPet)
-
     local pool = eggChances[eggName]
-
     if not pool then return nil end
-
-    local tries, selectedPet = 0, lastPet
-
-    while tries < 5 do
-
+    for _ = 1, 5 do
         local pet = weightedRandom(pool)
-
-        if not pet then return nil end
-
         if pet ~= lastPet or math.random() < 0.3 then
-
-            selectedPet = pet
-
-            break
-
+            return pet
         end
-
-        tries += 1
-
     end
-
-    return selectedPet
-
+    return lastPet
 end
 
-
-
+-- ESP CREATOR
 local function createEspGui(object, labelText)
-
     local billboard = Instance.new("BillboardGui")
-
     billboard.Name = "FakePetESP"
-
     billboard.Adornee = object:FindFirstChildWhichIsA("BasePart") or object.PrimaryPart or object
-
     billboard.Size = UDim2.new(0, 200, 0, 50)
-
     billboard.StudsOffset = Vector3.new(0, 2.5, 0)
-
     billboard.AlwaysOnTop = true
-
-
+    billboard.Enabled = espEnabled
 
     local label = Instance.new("TextLabel")
-
     label.Size = UDim2.new(1, 0, 1, 0)
-
     label.BackgroundTransparency = 1
-
     label.TextColor3 = Color3.new(1, 1, 1)
-
     label.TextStrokeTransparency = 0
-
     label.TextScaled = true
-
     label.Font = Enum.Font.SourceSansBold
-
     label.Text = labelText
-
     label.Parent = billboard
 
-
-
     billboard.Parent = object
-
     return billboard
-
 end
 
-
-
+-- ADD/REMOVE ESP
 local function addESP(egg)
-
     if egg:GetAttribute("OWNER") ~= localPlayer.Name then return end
-
     local eggName = egg:GetAttribute("EggName")
-
     local objectId = egg:GetAttribute("OBJECT_UUID")
-
     if not eggName or not objectId or displayedEggs[objectId] then return end
 
-
-
     local labelText, firstPet
-
     if realESP[eggName] then
-
         labelText = eggName
-
     else
-
         firstPet = getNonRepeatingRandomPet(eggName, nil)
-
         labelText = eggName .. " | " .. (firstPet or "?")
-
     end
-
-
 
     local espGui = createEspGui(egg, labelText)
-
     displayedEggs[objectId] = {
-
         egg = egg,
-
         gui = espGui,
-
         label = espGui:FindFirstChild("TextLabel"),
-
         eggName = eggName,
-
         lastPet = firstPet
-
     }
-
 end
-
-
 
 local function removeESP(egg)
-
     local objectId = egg:GetAttribute("OBJECT_UUID")
-
     if objectId and displayedEggs[objectId] then
-
         displayedEggs[objectId].gui:Destroy()
-
         displayedEggs[objectId] = nil
-
     end
-
 end
 
-
-
-for _, egg in collectionService:GetTagged("PetEggServer") do
-
-    addESP(egg)
-
-end
-
-
-
+for _, egg in collectionService:GetTagged("PetEggServer") do addESP(egg) end
 collectionService:GetInstanceAddedSignal("PetEggServer"):Connect(addESP)
-
 collectionService:GetInstanceRemovedSignal("PetEggServer"):Connect(removeESP)
 
-
-
--- GUI Setup
-
-local gui = Instance.new("ScreenGui")
-
+-- GUI SETUP
+local gui = Instance.new("ScreenGui", localPlayer:WaitForChild("PlayerGui"))
 gui.Name = "RandomizerGUI"
-
 gui.ResetOnSpawn = false
 
-gui.Parent = localPlayer:WaitForChild("PlayerGui")
-
-
-
-local bgFrame = Instance.new("Frame")
-
-bgFrame.Size = UDim2.new(0, 300, 0, 190)
-
-bgFrame.Position = UDim2.new(0, 10, 1, -200)
-
+local bgFrame = Instance.new("Frame", gui)
+bgFrame.Size = UDim2.new(0, 300, 0, 220)
+bgFrame.Position = UDim2.new(0, 10, 1, -240)
 bgFrame.BackgroundColor3 = Color3.fromRGB(106, 190, 48)
-
 bgFrame.BorderColor3 = Color3.fromRGB(45, 90, 20)
-
 bgFrame.BorderSizePixel = 4
 
-bgFrame.Parent = gui
-
-
-
--- Stop Button
-
-local stopBtn = Instance.new("TextButton", bgFrame)
-
-stopBtn.Size = UDim2.new(0, 200, 0, 35)
-
-stopBtn.Position = UDim2.new(0, 10, 0, 10)
-
-stopBtn.BackgroundColor3 = Color3.fromRGB(160, 110, 60)
-
-stopBtn.TextColor3 = Color3.new(1, 1, 1)
-
-stopBtn.Text = "🍀Auto Stop: ON"
-
-stopBtn.TextScaled = true
-
-stopBtn.MouseButton1Click:Connect(function()
-
-    autoStopOn = not autoStopOn
-
-    stopBtn.Text = autoStopOn and "🍀Auto Stop: ON" or "Auto Stop: OFF"
-
-end)
-
-
-
--- Info Button
-
-local info = Instance.new("TextButton", bgFrame)
-
-info.Size = UDim2.new(0, 30, 0, 35)
-
-info.Position = UDim2.new(0, 260, 0, 10)
-
-info.BackgroundColor3 = Color3.fromRGB(90, 90, 90)
-
-info.TextColor3 = Color3.new(1, 1, 1)
-
-info.Text = "?"
-
-info.TextScaled = true
-
-info.MouseButton1Click:Connect(function()
-
-    pcall(function()
-
-        game:GetService("StarterGui"):SetCore("SendNotification", {
-
-            Title = "Info",
-
-            Text = "Auto Stop when found: Raccoon, Dragonfly, Queen Bee, Red Fox, Disco Bee, Butterfly.",
-
-            Duration = 5
-
-        })
-
-    end)
-
-end)
-
-
-
--- Reroll Button with 10s Cooldown
-local rerollCooldown = 10
-local rerollTimer = 0
-local isRerollCoolingDown = false
-
-local rerollBtn = Instance.new("TextButton", bgFrame)
-rerollBtn.Size = UDim2.new(0, 200, 0, 35)
-rerollBtn.Position = UDim2.new(0, 10, 0, 55)
-rerollBtn.BackgroundColor3 = Color3.fromRGB(120, 120, 120)
-rerollBtn.TextColor3 = Color3.new(1, 1, 1)
-rerollBtn.Text = "🎲Randomize Pets"
-rerollBtn.TextScaled = true
-
-rerollBtn.MouseButton1Click:Connect(function()
-    if isRerollCoolingDown then return end
-    isRerollCoolingDown = true
-    rerollBtn.Text = "Cooldown: " .. rerollCooldown .. "s"
-    rerollBtn.AutoButtonColor = false
-
-    for objectId, data in pairs(displayedEggs) do
-        local pet = getNonRepeatingRandomPet(data.eggName, data.lastPet)
-        if pet and data.label then
-            data.label.Text = data.eggName .. " | " .. pet
-            data.lastPet = pet
-        end
-    end
-
-    rerollTimer = rerollCooldown
-end)
-
--- Countdown Handler
-runService.Heartbeat:Connect(function(dt)
-    if isRerollCoolingDown then
-        rerollTimer -= dt
-        if rerollTimer <= 0 then
-            rerollTimer = 0
-            isRerollCoolingDown = false
-            rerollBtn.Text = "🎲Randomize Pets"
-            rerollBtn.AutoButtonColor = true
-        else
-            rerollBtn.Text = "Cooldown: " .. math.ceil(rerollTimer) .. "s"
-        end
-    end
-end)
-
-
-
-
--- Auto Randomizer Button
-
-local autoBtn = Instance.new("TextButton", bgFrame)
-
-autoBtn.Size = UDim2.new(0, 200, 0, 35)
-
-autoBtn.Position = UDim2.new(0, 10, 0, 100)
-
-autoBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-
-autoBtn.TextColor3 = Color3.new(1, 1, 1)
-
-autoBtn.Text = "🔄Auto Randomizer: OFF"
-
-autoBtn.TextScaled = true
-
-autoBtn.MouseButton1Click:Connect(function()
-
-    autoRandomizerOn = not autoRandomizerOn
-
-    autoBtn.Text = autoRandomizerOn and "🔄Auto Randomizer: ON" or "🔄Auto Randomizer: OFF"
-
-end)
-
-
-
--- Timer Label
-
-local timerLabel = Instance.new("TextLabel", bgFrame)
-
-timerLabel.Size = UDim2.new(0, 200, 0, 30)
-
-timerLabel.Position = UDim2.new(0, 10, 0, 145)
-
-timerLabel.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-
-timerLabel.TextColor3 = Color3.new(1, 1, 1)
-
-timerLabel.Text = "Next Auto: OFF"
-
-timerLabel.TextScaled = true
-
-timerLabel.Font = Enum.Font.SourceSansBold
-
-
-
--- Auto Randomizer Timer Logic
-
-runService.Heartbeat:Connect(function(dt)
-
-    if autoRandomizerOn then
-
-        lastAutoUpdate += dt
-
-        local remain = math.max(0, math.ceil(AUTO_INTERVAL - lastAutoUpdate))
-
-        timerLabel.Text = "Next Auto: " .. remain .. "s"
-
-
-
-        if lastAutoUpdate >= AUTO_INTERVAL then
-
-            lastAutoUpdate = 0
-
-            for objectId, data in pairs(displayedEggs) do
-
-                local pet = getNonRepeatingRandomPet(data.eggName, data.lastPet)
-
-                if pet and data.label then
-
-                    data.label.Text = data.eggName .. " | " .. pet
-
-                    data.lastPet = pet
-
-                end
-
-            end
-
-        end
-
-    else
-
-        timerLabel.Text = ""
-
-        lastAutoUpdate = 0
-
-    end
-
-end)
-
-
--- Draggable GUI Setup
+-- Top bar + drag
 bgFrame.Active = true
 bgFrame.Draggable = true
-
--- Top bar
 local topBar = Instance.new("Frame", bgFrame)
 topBar.Size = UDim2.new(1, 0, 0, 30)
 topBar.Position = UDim2.new(0, 0, 0, 0)
 topBar.BackgroundColor3 = Color3.fromRGB(80, 150, 40)
 topBar.BorderSizePixel = 0
 
--- Minimize Button
+-- GUI Body Frame
+local guiBody = Instance.new("Frame", bgFrame)
+guiBody.Name = "Body"
+guiBody.Size = UDim2.new(1, 0, 1, -30)
+guiBody.Position = UDim2.new(0, 0, 0, 30)
+guiBody.BackgroundTransparency = 1
+
+-- Buttons
+local function newButton(text, posY)
+    local btn = Instance.new("TextButton", guiBody)
+    btn.Size = UDim2.new(0, 200, 0, 35)
+    btn.Position = UDim2.new(0, 10, 0, posY)
+    btn.BackgroundColor3 = Color3.fromRGB(120, 120, 120)
+    btn.TextColor3 = Color3.new(1, 1, 1)
+    btn.Text = text
+    btn.TextScaled = true
+    return btn
+end
+
+-- Auto Stop Button
+local stopBtn = newButton("🍀Auto Stop: ON", 10)
+stopBtn.MouseButton1Click:Connect(function()
+    autoStopOn = not autoStopOn
+    stopBtn.Text = autoStopOn and "🍀Auto Stop: ON" or "Auto Stop: OFF"
+end)
+
+-- Info Button
+local info = Instance.new("TextButton", guiBody)
+info.Size = UDim2.new(0, 30, 0, 35)
+info.Position = UDim2.new(0, 260, 0, 10)
+info.BackgroundColor3 = Color3.fromRGB(90, 90, 90)
+info.TextColor3 = Color3.new(1, 1, 1)
+info.Text = "?"
+info.TextScaled = true
+info.MouseButton1Click:Connect(function()
+    pcall(function()
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = "Info",
+            Text = "Auto Stop when found: Raccoon, Dragonfly, Queen Bee, Red Fox, Disco Bee, Butterfly.",
+            Duration = 5
+        })
+    end)
+end)
+
+-- Reroll Button
+local rerollBtn = newButton("🎲Randomize Pets", 55)
+local rerollCooldown, rerollTimer, isRerollCoolingDown = 10, 0, false
+rerollBtn.MouseButton1Click:Connect(function()
+    if isRerollCoolingDown then return end
+    isRerollCoolingDown = true
+    rerollBtn.Text = "Cooldown: " .. rerollCooldown .. "s"
+    rerollBtn.AutoButtonColor = false
+    for _, data in pairs(displayedEggs) do
+        local pet = getNonRepeatingRandomPet(data.eggName, data.lastPet)
+        if pet and data.label then
+            data.label.Text = data.eggName .. " | " .. pet
+            data.lastPet = pet
+        end
+    end
+    rerollTimer = rerollCooldown
+end)
+
+-- Auto Randomizer Button
+local autoBtn = newButton("🔄Auto Randomizer: OFF", 100)
+autoBtn.MouseButton1Click:Connect(function()
+    autoRandomizerOn = not autoRandomizerOn
+    autoBtn.Text = autoRandomizerOn and "🔄Auto Randomizer: ON" or "🔄Auto Randomizer: OFF"
+end)
+
+-- ESP Toggle Button
+local espToggleBtn = newButton("👁️ ESP: ON", 145)
+espToggleBtn.BackgroundColor3 = Color3.fromRGB(100, 100, 200)
+espToggleBtn.MouseButton1Click:Connect(function()
+    espEnabled = not espEnabled
+    espToggleBtn.Text = espEnabled and "👁️ ESP: ON" or "👁️ ESP: OFF"
+    for _, data in pairs(displayedEggs) do
+        if data.gui then data.gui.Enabled = espEnabled end
+    end
+end)
+
+-- Auto Timer Label
+local timerLabel = Instance.new("TextLabel", guiBody)
+timerLabel.Size = UDim2.new(0, 200, 0, 30)
+timerLabel.Position = UDim2.new(0, 10, 0, 190)
+timerLabel.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+timerLabel.TextColor3 = Color3.new(1, 1, 1)
+timerLabel.Text = "Next Auto: OFF"
+timerLabel.TextScaled = true
+timerLabel.Font = Enum.Font.SourceSansBold
+
+-- Timer and Cooldown Logic
+runService.Heartbeat:Connect(function(dt)
+    if isRerollCoolingDown then
+        rerollTimer -= dt
+        if rerollTimer <= 0 then
+            rerollBtn.Text = "🎲Randomize Pets"
+            rerollBtn.AutoButtonColor = true
+            isRerollCoolingDown = false
+        else
+            rerollBtn.Text = "Cooldown: " .. math.ceil(rerollTimer) .. "s"
+        end
+    end
+
+    if autoRandomizerOn then
+        lastAutoUpdate += dt
+        local remain = math.max(0, math.ceil(AUTO_INTERVAL - lastAutoUpdate))
+        timerLabel.Text = "Next Auto: " .. remain .. "s"
+        if lastAutoUpdate >= AUTO_INTERVAL then
+            lastAutoUpdate = 0
+            for _, data in pairs(displayedEggs) do
+                local pet = getNonRepeatingRandomPet(data.eggName, data.lastPet)
+                if pet and data.label then
+                    data.label.Text = data.eggName .. " | " .. pet
+                    data.lastPet = pet
+                end
+            end
+        end
+    else
+        timerLabel.Text = ""
+        lastAutoUpdate = 0
+    end
+end)
+
+-- Minimize + Exit Buttons
 local minimizeBtn = Instance.new("TextButton", topBar)
 minimizeBtn.Size = UDim2.new(0, 30, 0, 30)
 minimizeBtn.Position = UDim2.new(1, -65, 0, 0)
@@ -504,7 +284,6 @@ minimizeBtn.Text = "-"
 minimizeBtn.TextScaled = true
 minimizeBtn.TextColor3 = Color3.new(0, 0, 0)
 
--- Exit Button
 local exitBtn = Instance.new("TextButton", topBar)
 exitBtn.Size = UDim2.new(0, 30, 0, 30)
 exitBtn.Position = UDim2.new(1, -30, 0, 0)
@@ -513,49 +292,29 @@ exitBtn.Text = "X"
 exitBtn.TextScaled = true
 exitBtn.TextColor3 = Color3.new(1, 1, 1)
 
--- GUI body container (for hiding/showing)
-local guiBody = Instance.new("Frame", bgFrame)
-guiBody.Name = "Body"
-guiBody.Size = UDim2.new(1, 0, 1, -30)
-guiBody.Position = UDim2.new(0, 0, 0, 30)
-guiBody.BackgroundTransparency = 1
-
--- Move your existing controls into the body
-stopBtn.Parent = guiBody
-info.Parent = guiBody
-rerollBtn.Parent = guiBody
-autoBtn.Parent = guiBody
-timerLabel.Parent = guiBody
-
--- Minimized logo button
 local logoBtn = Instance.new("TextButton")
 logoBtn.Size = UDim2.new(0, 100, 0, 30)
 logoBtn.Position = UDim2.new(0, 10, 1, -40)
 logoBtn.BackgroundColor3 = Color3.fromRGB(106, 190, 48)
 logoBtn.Text = "🔼 Show Randomizer"
 logoBtn.TextScaled = true
-logoBtn.Visible = false
 logoBtn.TextColor3 = Color3.new(1, 1, 1)
+logoBtn.Visible = false
 logoBtn.Parent = gui
 
--- Minimize toggle
-local minimized = false
 minimizeBtn.MouseButton1Click:Connect(function()
-    minimized = true
     guiBody.Visible = false
     bgFrame.Visible = false
     logoBtn.Visible = true
 end)
 
--- Restore GUI from logo
 logoBtn.MouseButton1Click:Connect(function()
-    minimized = false
     guiBody.Visible = true
     bgFrame.Visible = true
     logoBtn.Visible = false
 end)
 
--- Exit GUI
 exitBtn.MouseButton1Click:Connect(function()
     gui:Destroy()
 end)
+
