@@ -32,8 +32,8 @@ local eggChances = {
         ["Nihonzaru"] = 20,
         ["Tanuki"] = 20,
         ["Tanchozuru"] = 15,
-        ["Kappa"] = 15,
-        ["Kitsune"] = 10
+        ["Kappa"] = 1,
+        ["Kitsune"] = 0
     }
 }
 
