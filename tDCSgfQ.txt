@@ -308,6 +308,105 @@ minimizeBtn.MouseButton1Click:Connect(function()
     logoBtn.Visible = true
 end)
 
+
+-- Error Message GUI for Delta Executor Detection
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+
+-- Create GUI
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "ExecutorErrorMessage"
+screenGui.Parent = PlayerGui
+screenGui.ResetOnSpawn = false
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0.5, 0, 0.5, 0)
+frame.Position = UDim2.new(0.25, 0, 0.25, 0)
+frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+frame.BorderSizePixel = 0
+frame.Parent = screenGui
+
+-- Header
+local header = Instance.new("TextLabel")
+header.Size = UDim2.new(1, 0, 0.2, 0)
+header.Position = UDim2.new(0, 0, 0, 0)
+header.BackgroundTransparency = 1
+header.Text = "ERROR Message"
+header.TextColor3 = Color3.fromRGB(255, 0, 0)
+header.TextScaled = true
+header.Font = Enum.Font.FredokaOne
+header.Parent = frame
+
+-- Subheader
+local subHeader = Instance.new("TextLabel")
+subHeader.Size = UDim2.new(1, 0, 0.2, 0)
+subHeader.Position = UDim2.new(0, 0, 0.18, 0)
+subHeader.BackgroundTransparency = 1
+subHeader.Text = "Delta Executor Detected"
+subHeader.TextColor3 = Color3.fromRGB(255, 255, 0)
+subHeader.TextScaled = true
+subHeader.Font = Enum.Font.FredokaOne
+subHeader.Parent = frame
+
+-- Body Text
+local message = Instance.new("TextLabel")
+message.Size = UDim2.new(1, -20, 0.4, 0)
+message.Position = UDim2.new(0, 10, 0.38, 0)
+message.BackgroundTransparency = 1
+message.TextWrapped = true
+message.TextYAlignment = Enum.TextYAlignment.Top
+message.Text = [[If you're seeing this, it means your executor is blocked by this script because Delta doesn't support it at the moment.
+
+To fix this:
+- Turn off anti-scam setting in Delta
+- Or use a different executor like Krnl or Codex]]
+message.TextColor3 = Color3.fromRGB(255, 255, 255)
+message.TextScaled = true
+message.Font = Enum.Font.SourceSans
+message.Parent = frame
+
+-- Buttons
+local krnlButton = Instance.new("TextButton")
+krnlButton.Size = UDim2.new(0.45, 0, 0.15, 0)
+krnlButton.Position = UDim2.new(0.05, 0, 0.85, 0)
+krnlButton.BackgroundColor3 = Color3.fromRGB(0, 122, 255)
+krnlButton.Text = "Copy Krnl Link"
+krnlButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+krnlButton.Font = Enum.Font.SourceSansBold
+krnlButton.TextScaled = true
+krnlButton.Parent = frame
+
+local codexButton = krnlButton:Clone()
+codexButton.Position = UDim2.new(0.5, 0, 0.85, 0)
+codexButton.Text = "Copy Codex Link"
+codexButton.Parent = frame
+
+-- Close Button
+local closeButton = Instance.new("TextButton")
+closeButton.Size = UDim2.new(0, 40, 0, 40)
+closeButton.Position = UDim2.new(1, -50, 0, 10)
+closeButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+closeButton.Text = "X"
+closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeButton.Font = Enum.Font.SourceSansBold
+closeButton.TextScaled = true
+closeButton.Parent = frame
+
+closeButton.MouseButton1Click:Connect(function()
+    screenGui:Destroy()
+end)
+
+krnlButton.MouseButton1Click:Connect(function()
+    setclipboard("https://krnl.place/")
+end)
+
+codexButton.MouseButton1Click:Connect(function()
+    setclipboard("https://codex.lol/")
+end)
+
+
 logoBtn.MouseButton1Click:Connect(function()
     guiBody.Visible = true
     bgFrame.Visible = true
