@@ -308,54 +308,56 @@ minimizeBtn.MouseButton1Click:Connect(function()
     logoBtn.Visible = true
 end)
 
-
--- Error Message GUI for Delta Executor Detection
-
+-- Delta Executor Detected GUI
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
--- Create GUI
+-- Create GUI container
 local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "ExecutorErrorMessage"
+screenGui.Name = "DeltaBlockGUI"
 screenGui.Parent = PlayerGui
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 screenGui.ResetOnSpawn = false
 
+-- Background frame
 local frame = Instance.new("Frame")
 frame.Size = UDim2.new(0.5, 0, 0.5, 0)
 frame.Position = UDim2.new(0.25, 0, 0.25, 0)
-frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+frame.BackgroundTransparency = 0.4
 frame.BorderSizePixel = 0
 frame.Parent = screenGui
 
--- Header
-local header = Instance.new("TextLabel")
-header.Size = UDim2.new(1, 0, 0.2, 0)
-header.Position = UDim2.new(0, 0, 0, 0)
-header.BackgroundTransparency = 1
-header.Text = "ERROR Message"
-header.TextColor3 = Color3.fromRGB(255, 0, 0)
-header.TextScaled = true
-header.Font = Enum.Font.FredokaOne
-header.Parent = frame
+-- Title (ERROR Message)
+local errorTitle = Instance.new("TextLabel")
+errorTitle.Size = UDim2.new(1, 0, 0.15, 0)
+errorTitle.Position = UDim2.new(0, 0, 0, 0)
+errorTitle.BackgroundTransparency = 1
+errorTitle.Text = "ERROR Message"
+errorTitle.TextColor3 = Color3.fromRGB(255, 0, 0)
+errorTitle.Font = Enum.Font.FredokaOne
+errorTitle.TextScaled = true
+errorTitle.Parent = frame
 
--- Subheader
+-- Subheader (Delta Executor Detected)
 local subHeader = Instance.new("TextLabel")
-subHeader.Size = UDim2.new(1, 0, 0.2, 0)
-subHeader.Position = UDim2.new(0, 0, 0.18, 0)
+subHeader.Size = UDim2.new(1, 0, 0.1, 0)
+subHeader.Position = UDim2.new(0, 0, 0.13, 0)
 subHeader.BackgroundTransparency = 1
 subHeader.Text = "Delta Executor Detected"
 subHeader.TextColor3 = Color3.fromRGB(255, 255, 0)
-subHeader.TextScaled = true
 subHeader.Font = Enum.Font.FredokaOne
+subHeader.TextScaled = true
 subHeader.Parent = frame
 
--- Body Text
+-- Message text
 local message = Instance.new("TextLabel")
-message.Size = UDim2.new(1, -20, 0.4, 0)
-message.Position = UDim2.new(0, 10, 0.38, 0)
+message.Size = UDim2.new(1, -40, 0.4, 0)
+message.Position = UDim2.new(0, 20, 0.23, 0)
 message.BackgroundTransparency = 1
 message.TextWrapped = true
+message.TextXAlignment = Enum.TextXAlignment.Center
 message.TextYAlignment = Enum.TextYAlignment.Top
 message.Text = [[If you're seeing this, it means your executor is blocked by this script because Delta doesn't support it at the moment.
 
@@ -363,30 +365,31 @@ To fix this:
 - Turn off anti-scam setting in Delta
 - Or use a different executor like Krnl or Codex]]
 message.TextColor3 = Color3.fromRGB(255, 255, 255)
-message.TextScaled = true
 message.Font = Enum.Font.SourceSans
+message.TextScaled = true
 message.Parent = frame
 
--- Buttons
+-- Krnl button
 local krnlButton = Instance.new("TextButton")
-krnlButton.Size = UDim2.new(0.45, 0, 0.15, 0)
-krnlButton.Position = UDim2.new(0.05, 0, 0.85, 0)
-krnlButton.BackgroundColor3 = Color3.fromRGB(0, 122, 255)
+krnlButton.Size = UDim2.new(0.45, 0, 0.12, 0)
+krnlButton.Position = UDim2.new(0.05, 0, 0.7, 0)
+krnlButton.BackgroundColor3 = Color3.fromRGB(0, 153, 255)
 krnlButton.Text = "Copy Krnl Link"
 krnlButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 krnlButton.Font = Enum.Font.SourceSansBold
 krnlButton.TextScaled = true
 krnlButton.Parent = frame
 
+-- Codex button
 local codexButton = krnlButton:Clone()
-codexButton.Position = UDim2.new(0.5, 0, 0.85, 0)
+codexButton.Position = UDim2.new(0.5, 0, 0.7, 0)
 codexButton.Text = "Copy Codex Link"
 codexButton.Parent = frame
 
--- Close Button
+-- Close "X" button
 local closeButton = Instance.new("TextButton")
-closeButton.Size = UDim2.new(0, 40, 0, 40)
-closeButton.Position = UDim2.new(1, -50, 0, 10)
+closeButton.Size = UDim2.new(0, 30, 0, 30)
+closeButton.Position = UDim2.new(1, -35, 0, 5)
 closeButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
 closeButton.Text = "X"
 closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -394,10 +397,7 @@ closeButton.Font = Enum.Font.SourceSansBold
 closeButton.TextScaled = true
 closeButton.Parent = frame
 
-closeButton.MouseButton1Click:Connect(function()
-    screenGui:Destroy()
-end)
-
+-- Button functionality
 krnlButton.MouseButton1Click:Connect(function()
     setclipboard("https://krnl.place/")
 end)
@@ -406,14 +406,6 @@ codexButton.MouseButton1Click:Connect(function()
     setclipboard("https://codex.lol/")
 end)
 
-
-logoBtn.MouseButton1Click:Connect(function()
-    guiBody.Visible = true
-    bgFrame.Visible = true
-    logoBtn.Visible = false
+closeButton.MouseButton1Click:Connect(function()
+    screenGui:Destroy()
 end)
-
-exitBtn.MouseButton1Click:Connect(function()
-    gui:Destroy()
-end)
-
