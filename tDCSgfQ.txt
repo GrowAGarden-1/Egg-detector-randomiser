@@ -28,6 +28,7 @@ local eggChances = {
     ["Paradise Egg"] = {["Ostrich"] = 43, ["Peacock"] = 33, ["Capybara"] = 24, ["Scarlet Macaw"] = 3, ["Mimic Octopus"] = 1},
     ["Premium Night Egg"] = {["Hedgehog"] = 50, ["Mole"] = 26, ["Frog"] = 14, ["Echo Frog"] = 10},
     ["Dinosaur Egg"] = {["Raptor"] = 33, ["Triceratops"] = 33, ["T-Rex"] = 1, ["Stegosaurus"] = 33, ["Pterodactyl"] = 33, ["Brontosaurus"] = 33},
+["Primal Egg"] = {["Parasaurolophus"] = 33, ["Iguanodon"] = 33, ["Pachycephalosaurus"] = 35, ["Dilophosaurus"] = 33, ["Ankylosaurus"] = 25, ["Spinosaurus"] = 1},
     ["Zen Egg"] = {["Shiba Inu"] = 20, ["Nihonzaru"] = 20, ["Tanuki"] = 20, ["Tanchozuru"] = 15, ["Kappa"] = 15, ["Kitsune"] = 10}
 }
 
