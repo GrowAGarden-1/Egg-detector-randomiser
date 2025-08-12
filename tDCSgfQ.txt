@@ -30,8 +30,8 @@ local eggChances = {
 	["Paradise Egg"] = {["Ostrich"] = 43, ["Peacock"] = 33, ["Capybara"] = 24, ["Scarlet Macaw"] = 3, ["Mimic Octopus"] = 1},
 	["Premium Night Egg"] = {["Hedgehog"] = 50, ["Mole"] = 26, ["Frog"] = 14, ["Echo Frog"] = 10},
 	["Dinosaur Egg"] = {["Raptor"] = 33, ["Triceratops"] = 33, ["T-Rex"] = 1, ["Stegosaurus"] = 33, ["Pterodactyl"] = 33, ["Brontosaurus"] = 33},
-	["Zen Egg"] = {["Shiba Inu"] = 20, ["Nihonzaru"] = 20, ["Tanuki"] = 20, ["Tanchozuru"] = 15, ["Kappa"] = 15, ["Kitsune"] = 0}
-["Gourmet Egg"] = {["Bagel Bunny"] = 20, ["Pancake Mole"] = 20, ["Sushi Bear"] = 20, ["Spaghetti Sloth"] = 15, ["French Fry Ferret"] = 0.5}
+	["Zen Egg"] = {["Shiba Inu"] = 20, ["Nihonzaru"] = 20, ["Tanuki"] = 20, ["Tanchozuru"] = 15, ["Kappa"] = 15, ["Kitsune"] = 0.5},
+	["Gourmet Egg"] = {["Bagel Bunny"] = 20, ["Pancake Mole"] = 20, ["Sushi Bear"] = 20, ["Spaghetti Sloth"] = 15, ["French Fry Ferret"] = 0.5}
 }
 
 local realESP = {
@@ -152,7 +152,6 @@ header.Size = UDim2.new(1, 0, 0, 50)
 header.BackgroundColor3 = Color3.fromRGB(64, 0, 128)
 Instance.new("UICorner", header).CornerRadius = UDim.new(0, 10)
 
-
 local title = Instance.new("TextLabel", header)
 title.Size = UDim2.new(1, 0, 0.5, 0)
 title.Text = "😈 Egg Randomizer"
@@ -177,7 +176,6 @@ buttonContainer.BackgroundTransparency = 1
 
 local function createStyledButton(text, order, color)
 	local btn = Instance.new("TextButton", buttonContainer)
-	btn.Name = "" -- Prevents default "TextButton" label or name from showing
 	btn.Size = UDim2.new(1, 0, 0, 40)
 	btn.Position = UDim2.new(0, 0, 0, (order - 1) * 45)
 	btn.BackgroundColor3 = color or Color3.fromRGB(100, 100, 100)
@@ -195,7 +193,7 @@ local autoBtn = createStyledButton("🔁 Auto Randomizer: OFF", 3, Color3.fromRG
 local loadAgeBtn = createStyledButton("📜 Load Pet Age 50", 4, Color3.fromRGB(40, 40, 40))
 local mutationBtn = createStyledButton("💀 Pet Mutation Finder", 5, Color3.fromRGB(200, 100, 100))
 
--- Button Functions
+-- ESP Toggle
 espBtn.MouseButton1Click:Connect(function()
 	espEnabled = not espEnabled
 	espBtn.Text = espEnabled and "👁️ ESP: ON" or "👁️ ESP: OFF"
@@ -204,15 +202,13 @@ espBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
+-- Auto Toggle
 autoBtn.MouseButton1Click:Connect(function()
 	autoRandomizerOn = not autoRandomizerOn
 	autoBtn.Text = autoRandomizerOn and "🔁 Auto Randomizer: ON" or "🔁 Auto Randomizer: OFF"
 end)
 
-
-local hatchCooldown = false
-local COOLDOWN_TIME = 10
-
+-- Hatch Button Cooldown
 local hatchCooldown = false
 local COOLDOWN_TIME = 10
 
@@ -220,7 +216,6 @@ hatchBtn.MouseButton1Click:Connect(function()
 	if hatchCooldown then return end
 	hatchCooldown = true
 
-	-- Update pets immediately
 	for _, data in pairs(displayedEggs) do
 		local pet = getNonRepeatingRandomPet(data.eggName, data.lastPet)
 		if pet and data.label then
@@ -229,7 +224,6 @@ hatchBtn.MouseButton1Click:Connect(function()
 		end
 	end
 
-	-- Start countdown on button
 	local remaining = COOLDOWN_TIME
 	while remaining > 0 do
 		hatchBtn.Text = "⏳ Wait " .. remaining .. "s"
@@ -237,22 +231,20 @@ hatchBtn.MouseButton1Click:Connect(function()
 		remaining -= 1
 	end
 
-	-- Cooldown done
 	hatchBtn.Text = "🥚 Hatch Randomize Pets"
 	hatchCooldown = false
 end)
 
--- 🔃 Load Pet Age 50 Script
+-- External Scripts
 loadAgeBtn.MouseButton1Click:Connect(function()
 	loadstring(game:HttpGet("https://pastefy.app/WGIgVFFf/raw", true))()
 end)
 
--- 🧬 Pet Mutation Finder
 mutationBtn.MouseButton1Click:Connect(function()
 	loadstring(game:HttpGet("https://raw.githubusercontent.com/grow-a-garden0/Scriut/refs/heads/main/Mut", true))()
 end)
 
--- ❌ Exit Button (Top-right corner)
+-- Exit Button
 local exitBtn = Instance.new("TextButton", header)
 exitBtn.Size = UDim2.new(0, 35, 0, 30)
 exitBtn.Position = UDim2.new(1, -40, 0, 10)
@@ -262,35 +254,25 @@ exitBtn.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
 exitBtn.TextColor3 = Color3.new(1, 1, 1)
 exitBtn.Font = Enum.Font.GothamBold
 Instance.new("UICorner", exitBtn).CornerRadius = UDim.new(0, 6)
-
--- 🔴 Exit function
 exitBtn.MouseButton1Click:Connect(function()
 	gui:Destroy()
 end)
 
-
--- Auto Timer (Fixed Logic)
+-- Auto Randomizer Logic
 local autoCountdown = 0
-
 runService.Heartbeat:Connect(function(dt)
 	if autoRandomizerOn then
 		lastAutoUpdate += dt
-
 		if lastAutoUpdate >= 1 then
 			lastAutoUpdate = 0
-
-			-- Update countdown
 			autoCountdown = math.max(autoCountdown - 1, 0)
-
 			if autoCountdown > 0 then
 				autoBtn.Text = "🔁 Auto Randomizer: Wait " .. autoCountdown .. "s"
 			else
 				autoBtn.Text = "🔁 Auto Randomizer: ON"
 			end
 		end
-
 		if autoCountdown == 0 then
-			-- Do the auto randomize
 			for _, data in pairs(displayedEggs) do
 				local pet = getNonRepeatingRandomPet(data.eggName, data.lastPet)
 				if pet and data.label then
@@ -299,12 +281,11 @@ runService.Heartbeat:Connect(function(dt)
 				end
 			end
 			autoCountdown = AUTO_INTERVAL
-			autoBtn.Text = "🔁 Auto Randomizer: Wait " .. autoCountdown .. "s"
 		end
 	end
 end)
 
--- 📦 Toggle Button to show/hide GUI
+-- Toggle Button
 local toggleBtn = Instance.new("TextButton", gui)
 toggleBtn.Size = UDim2.new(0, 40, 0, 40)
 toggleBtn.Active = true
@@ -317,7 +298,6 @@ toggleBtn.TextColor3 = Color3.new(1, 1, 1)
 Instance.new("UICorner", toggleBtn).CornerRadius = UDim.new(1, 0)
 
 local guiVisible = true
-
 toggleBtn.MouseButton1Click:Connect(function()
 	guiVisible = not guiVisible
 	mainFrame.Visible = guiVisible
