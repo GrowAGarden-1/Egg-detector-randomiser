@@ -32,6 +32,7 @@ local eggChances = {
 	["Dinosaur Egg"] = {["Raptor"] = 33, ["Triceratops"] = 33, ["T-Rex"] = 1, ["Stegosaurus"] = 33, ["Pterodactyl"] = 33, ["Brontosaurus"] = 33},
 	["Zen Egg"] = {["Shiba Inu"] = 20, ["Nihonzaru"] = 20, ["Tanuki"] = 20, ["Tanchozuru"] = 15, ["Kappa"] = 15, ["Kitsune"] = 0.5},
 	["Gourmet Egg"] = {["Bagel Bunny"] = 20, ["Pancake Mole"] = 20, ["Sushi Bear"] = 20, ["Spaghetti Sloth"] = 15, ["French Fry Ferret"] = 0.5}
+["Enchanted Egg"] = {["LadyBug"] = 20, ["Pixie"] = 20, ["Imp"] = 20, ["Glimmerinh Sprite"] = 10, ["Cockatrice"] = 0.5}
 }
 
 local realESP = {
