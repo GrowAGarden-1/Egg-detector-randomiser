@@ -191,7 +191,7 @@ end
 local hatchBtn = createStyledButton("🥚 Hatch Randomize Pets", 1, Color3.fromRGB(255, 0, 128))
 local espBtn = createStyledButton("👁️ ESP: ON", 2, Color3.fromRGB(50, 50, 50))
 local autoBtn = createStyledButton("🔁 Auto Randomizer: OFF", 3, Color3.fromRGB(0, 170, 0))
-local loadAgeBtn = createStyledButton("📜 Load Pet Age 50", 4, Color3.fromRGB(40, 40, 40))
+local loadAgeBtn = createStyledButton("🦝 Load Pet Spawner", 4, Color3.fromRGB(40, 40, 40))
 local mutationBtn = createStyledButton("💀 Pet Mutation Finder", 5, Color3.fromRGB(200, 100, 100))
 
 -- ESP Toggle
@@ -238,7 +238,7 @@ end)
 
 -- External Scripts
 loadAgeBtn.MouseButton1Click:Connect(function()
-	loadstring(game:HttpGet("https://pastefy.app/WGIgVFFf/raw", true))()
+	loadstring(game:HttpGet("https://raw.githubusercontent.com/grow-a-garden0/nill/refs/heads/main/Spawner"))()
 end)
 
 mutationBtn.MouseButton1Click:Connect(function()
