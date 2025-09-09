@@ -1,4 +1,4 @@
--- Egg Randomizer Script (Visual + ESP + Auto)
+-- Egg Randomizer Script (Visual + ESP + Auto + Blink Red Effect + Sync Randomize)
 -- Insert this into a LocalScript under StarterPlayer > StarterPlayerScripts
 
 -- SERVICES
@@ -27,12 +27,12 @@ local eggChances = {
 	["Anti Bee Egg"] = {["Wasp"] = 55, ["Tarantula Hawk"] = 31, ["Moth"] = 14, ["Butterfly"] = 0, ["Disco Bee"] = 0},
 	["Common Summer Egg"] = {["Starfish"] = 50, ["Seafull"] = 25, ["Crab"] = 25},
 	["Rare Summer Egg"] = {["Flamingo"] = 30, ["Toucan"] = 25, ["Sea Turtle"] = 20, ["Orangutan"] = 15, ["Seal"] = 10},
-	["Paradise Egg"] = {["Ostrich"] = 43, ["Peacock"] = 33, ["Capybara"] = 24, ["Scarlet Macaw"] = 3, ["Mimic Octopus"] = 1},
+	["Paradise Egg"] = {["Ostrich"] = 43, ["Peacock"] = 33, ["Capybara"] = 24, ["Scarlet Macaw"] = 3, ["Mimic Octopus"] = 15},
 	["Premium Night Egg"] = {["Hedgehog"] = 50, ["Mole"] = 26, ["Frog"] = 14, ["Echo Frog"] = 10},
 	["Dinosaur Egg"] = {["Raptor"] = 33, ["Triceratops"] = 33, ["T-Rex"] = 1, ["Stegosaurus"] = 33, ["Pterodactyl"] = 33, ["Brontosaurus"] = 33},
-	["Zen Egg"] = {["Shiba Inu"] = 20, ["Nihonzaru"] = 20, ["Tanuki"] = 20, ["Tanchozuru"] = 15, ["Kappa"] = 15, ["Kitsune"] = 0.5},
+	["Zen Egg"] = {["Shiba Inu"] = 20, ["Nihonzaru"] = 20, ["Tanuki"] = 20, ["Tanchozuru"] = 15, ["Kappa"] = 15, ["Kitsune"] = 10},
 	["Gourmet Egg"] = {["Bagel Bunny"] = 20, ["Pancake Mole"] = 20, ["Sushi Bear"] = 20, ["Spaghetti Sloth"] = 15, ["French Fry Ferret"] = 0.5},
-	["Enchanted Egg"] = {["LadyBug"] = 20, ["Pixie"] = 20, ["Imp"] = 20, ["Glimmering Sprite"] = 10, ["Cockatrice"] = 0.5}
+	["Enchanted Egg"] = {["LadyBug"] = 20, ["Pixie"] = 20, ["Imp"] = 20, ["Glimmerinh Sprite"] = 10, ["Cockatrice"] = 0.5}
 }
 
 local realESP = {
@@ -73,6 +73,21 @@ local function getNonRepeatingRandomPet(eggName, lastPet)
 	return lastPet
 end
 
+-- BLINK EFFECT (RED then back to WHITE)
+local function blinkAllLabels()
+	for _, data in pairs(displayedEggs) do
+		if data.label then
+			data.label.TextColor3 = Color3.fromRGB(255, 0, 0)
+		end
+	end
+	task.wait(0.2)
+	for _, data in pairs(displayedEggs) do
+		if data.label then
+			data.label.TextColor3 = Color3.fromRGB(255, 255, 255)
+		end
+	end
+end
+
 -- ESP
 local function createEspGui(object, labelText)
 	local billboard = Instance.new("BillboardGui")
@@ -88,8 +103,9 @@ local function createEspGui(object, labelText)
 	label.BackgroundTransparency = 1
 	label.TextColor3 = Color3.new(1, 1, 1)
 	label.TextStrokeTransparency = 0
+	label.TextStrokeColor3 = Color3.new(0, 0, 0)
 	label.TextScaled = true
-	label.Font = Enum.Font.SourceSansBold
+	label.Font = Enum.Font.GothamBold
 	label.Text = labelText
 	label.Parent = billboard
 
@@ -129,7 +145,7 @@ local function removeESP(egg)
 	end
 end
 
--- Attach to eggs
+-- Attach ESP to eggs
 for _, egg in collectionService:GetTagged("PetEggServer") do addESP(egg) end
 collectionService:GetInstanceAddedSignal("PetEggServer"):Connect(addESP)
 collectionService:GetInstanceRemovedSignal("PetEggServer"):Connect(removeESP)
@@ -191,8 +207,10 @@ end
 local hatchBtn = createStyledButton("🥚 Hatch Randomize Pets", 1, Color3.fromRGB(255, 0, 128))
 local espBtn = createStyledButton("👁️ ESP: ON", 2, Color3.fromRGB(50, 50, 50))
 local autoBtn = createStyledButton("🔁 Auto Randomizer: OFF", 3, Color3.fromRGB(0, 170, 0))
-local loadAgeBtn = createStyledButton("🦝 Load Pet Spawner", 4, Color3.fromRGB(40, 40, 40))
-local mutationBtn = createStyledButton("💀 Pet Mutation Finder", 5, Color3.fromRGB(200, 100, 100))
+
+-- New External Script Buttons
+local loadAgeBtn = createStyledButton("🦝 Load Pet Spawner", 4, Color3.fromRGB(0, 85, 255))
+local mutationBtn = createStyledButton("🧬 Mutation Script", 5, Color3.fromRGB(255, 128, 0))
 
 -- ESP Toggle
 espBtn.MouseButton1Click:Connect(function()
@@ -203,37 +221,57 @@ espBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
--- Auto Toggle
+-- Hatch Button (Sabay-sabay randomize + blink)
+hatchBtn.MouseButton1Click:Connect(function()
+	local newPets = {}
+	for _, data in pairs(displayedEggs) do
+		local pet = getNonRepeatingRandomPet(data.eggName, data.lastPet)
+		if pet then
+			newPets[data] = pet
+		end
+	end
+	for data, pet in pairs(newPets) do
+		data.lastPet = pet
+		data.label.Text = data.eggName .. " | " .. pet
+	end
+	blinkAllLabels()
+end)
+
+-- Auto Randomizer (Sabay-sabay + blink)
+local autoCountdown = 0
 autoBtn.MouseButton1Click:Connect(function()
 	autoRandomizerOn = not autoRandomizerOn
 	autoBtn.Text = autoRandomizerOn and "🔁 Auto Randomizer: ON" or "🔁 Auto Randomizer: OFF"
 end)
 
--- Hatch Button Cooldown
-local hatchCooldown = false
-local COOLDOWN_TIME = 10
-
-hatchBtn.MouseButton1Click:Connect(function()
-	if hatchCooldown then return end
-	hatchCooldown = true
-
-	for _, data in pairs(displayedEggs) do
-		local pet = getNonRepeatingRandomPet(data.eggName, data.lastPet)
-		if pet and data.label then
-			data.label.Text = data.eggName .. " | " .. pet
-			data.lastPet = pet
+runService.Heartbeat:Connect(function(dt)
+	if autoRandomizerOn then
+		lastAutoUpdate += dt
+		if lastAutoUpdate >= 1 then
+			lastAutoUpdate = 0
+			autoCountdown = math.max(autoCountdown - 1, 0)
+			if autoCountdown > 0 then
+				autoBtn.Text = "🔁 Auto Randomizer: Wait " .. autoCountdown .. "s"
+			else
+				autoBtn.Text = "🔁 Auto Randomizer: ON"
+			end
+		end
+		if autoCountdown == 0 then
+			local newPets = {}
+			for _, data in pairs(displayedEggs) do
+				local pet = getNonRepeatingRandomPet(data.eggName, data.lastPet)
+				if pet then
+					newPets[data] = pet
+				end
+			end
+			for data, pet in pairs(newPets) do
+				data.lastPet = pet
+				data.label.Text = data.eggName .. " | " .. pet
+			end
+			blinkAllLabels()
+			autoCountdown = AUTO_INTERVAL
 		end
 	end
-
-	local remaining = COOLDOWN_TIME
-	while remaining > 0 do
-		hatchBtn.Text = "⏳ Wait " .. remaining .. "s"
-		task.wait(1)
-		remaining -= 1
-	end
-
-	hatchBtn.Text = "🥚 Hatch Randomize Pets"
-	hatchCooldown = false
 end)
 
 -- External Scripts
@@ -257,33 +295,6 @@ exitBtn.Font = Enum.Font.GothamBold
 Instance.new("UICorner", exitBtn).CornerRadius = UDim.new(0, 6)
 exitBtn.MouseButton1Click:Connect(function()
 	gui:Destroy()
-end)
-
--- Auto Randomizer Logic
-local autoCountdown = 0
-runService.Heartbeat:Connect(function(dt)
-	if autoRandomizerOn then
-		lastAutoUpdate += dt
-		if lastAutoUpdate >= 1 then
-			lastAutoUpdate = 0
-			autoCountdown = math.max(autoCountdown - 1, 0)
-			if autoCountdown > 0 then
-				autoBtn.Text = "🔁 Auto Randomizer: Wait " .. autoCountdown .. "s"
-			else
-				autoBtn.Text = "🔁 Auto Randomizer: ON"
-			end
-		end
-		if autoCountdown == 0 then
-			for _, data in pairs(displayedEggs) do
-				local pet = getNonRepeatingRandomPet(data.eggName, data.lastPet)
-				if pet and data.label then
-					data.label.Text = data.eggName .. " | " .. pet
-					data.lastPet = pet
-				end
-			end
-			autoCountdown = AUTO_INTERVAL
-		end
-	end
 end)
 
 -- Toggle Button
